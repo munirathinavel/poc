@@ -27,6 +27,9 @@ public class ProductService {
     @Qualifier("elasticsearchProductRepo")
     private ElasticsearchProductRepository elasticsearchRepository;
 
+    @Autowired
+    private KafkaProducerService kafkaProducerService;
+
     public Product saveProduct(Product product) {
         // Save to MongoDB
         Product savedProduct = mongoProductRepository.save(product);
@@ -35,6 +38,10 @@ public class ProductService {
         ElasticsearchProduct elasticProduct = mapToElasticsearchProduct(savedProduct);
 
         elasticsearchRepository.save(elasticProduct);
+
+        String message = "New Product Created: " + savedProduct.toString();
+        kafkaProducerService.sendMessage(message);
+
         return savedProduct;
     }
 
